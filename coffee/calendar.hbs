@@ -1,0 +1,30 @@
+<div class="inner">
+    <div class="clndr-controls">
+        <div class="clndr-previous-button clndr-button">&lt;</div>
+        <div class="clndr-next-button clndr-button">&gt;</div>
+        <div class="current-month">{{ month }} {{ year }}</div>
+    </div>
+    <div class="clndr-row">
+        <div class="clndr-grid">
+            <div class="days-of-the-week">
+                {{#each daysOfTheWeek }}
+                    <div class="header-day">{{ this }}</div>
+                {{/each }}
+            </div>
+            <div class="days">
+                {{#each days }}
+                    <div class="{{classes }}" id="{{ id }}"><span class="day-number">{{ day }}</span></div>
+                {{/each}}
+            </div>
+        </div>
+        <div class="event-listing">
+            <div class="event-listing-title">EVENTS THIS MONTH</div>
+            {{#each eventsThisMonth }}
+                <div class="event-item">
+                    <div class="event-item-name">{{ title }}</div>
+                    <div class="event-item-location">{{ location }}</div>
+                </div>
+            {{/each}}
+        </div>
+    </div>
+</div>

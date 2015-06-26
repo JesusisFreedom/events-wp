@@ -1,0 +1,14 @@
+{
+    "name": "jesusisfreedom/events-wp",
+    "description": "Wordpress events plugin using clndr",
+    "type": "wordpress-plugin",
+    "version": "0.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Austin Adams",
+            "email": "austin@farmingtonwebdesign.net"
+        }
+    ],
+    "require": {}
+}
