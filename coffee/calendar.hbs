@@ -20,8 +20,8 @@
         <div class="event-listing">
             <div class="event-listing-title">EVENTS THIS MONTH</div>
             {{#each eventsThisMonth }}
-                <div class="event-item">
-                    <div class="event-item-name">{{ title }}</div>
+                <div class="event-item" data-event="{{id}}">
+                    <div class="event-item-name">{{formatDate moment 'Do h:mm a'}} - {{ title }} </div>
                     <div class="event-item-location">{{ location }}</div>
                 </div>
             {{/each}}

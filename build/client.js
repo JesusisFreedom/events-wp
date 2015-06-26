@@ -18,9 +18,13 @@ module.exports = HandlebarsCompiler.template({"1":function(depth0,helpers,partia
 },"5":function(depth0,helpers,partials,data) {
     var helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
 
-  return "                <div class=\"event-item\">\n                    <div class=\"event-item-name\">"
+  return "                <div class=\"event-item\" data-event=\""
+    + alias3(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "\">\n                    <div class=\"event-item-name\">"
+    + alias3((helpers.formatDate || (depth0 && depth0.formatDate) || alias1).call(depth0,(depth0 != null ? depth0.moment : depth0),"Do h:mm a",{"name":"formatDate","hash":{},"data":data}))
+    + " - "
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</div>\n                    <div class=\"event-item-location\">"
+    + " </div>\n                    <div class=\"event-item-location\">"
     + alias3(((helper = (helper = helpers.location || (depth0 != null ? depth0.location : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"location","hash":{},"data":data}) : helper)))
     + "</div>\n                </div>\n";
 },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
@@ -39,8 +43,8 @@ module.exports = HandlebarsCompiler.template({"1":function(depth0,helpers,partia
     + "        </div>\n    </div>\n</div>\n";
 },"useData":true});
 
-},{"hbsfy/runtime":50}],2:[function(require,module,exports){
-var $, Ajax, calendarControler, calendarTemplate, clndr, getEvents, moment;
+},{"hbsfy/runtime":51}],2:[function(require,module,exports){
+var $, Ajax, Handlebars, calendarControler, calendarTemplate, clndr, eventView, eventViews, getEvents, modalTemplate, moment;
 
 $ = jQuery;
 
@@ -50,7 +54,38 @@ clndr = require('./clndr')($);
 
 moment = require('moment');
 
+Handlebars = require('hbsfy/runtime');
+
+Handlebars.registerHelper('formatDate', function(date, format) {
+  return date.format(format);
+});
+
 calendarTemplate = require('./calendar.hbs');
+
+modalTemplate = require('./modal.hbs');
+
+eventViews = [];
+
+eventView = (function() {
+  function eventView(event, element) {
+    this.event = event;
+    this.element = element;
+    this.element.on('click', (function(_this) {
+      return function() {
+        var modal, modalEl;
+        modal = modalTemplate(_this.event);
+        $(document.body).append(modal);
+        modalEl = $("#event-modal-" + _this.event.id);
+        return modalEl.modal('show').on('hidden.bs.modal', function() {
+          return $(this).remove();
+        });
+      };
+    })(this));
+  }
+
+  return eventView;
+
+})();
 
 calendarControler = $('#ev-wp-clndr').clndr({
   daysOfTheWeek: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -62,7 +97,24 @@ calendarControler = $('#ev-wp-clndr').clndr({
     }
   },
   render: function(data) {
+    eventViews = void 0;
+    eventViews = [];
+    data.eventsThisMonth.map(function(obj) {
+      obj.moment = moment(obj.start_date + " " + obj.time, "YYYY-MM-DD hh:mm");
+      if (!obj.moment.isValid()) {
+        return obj.moment = moment(obj.start_date, "YYYY-MM-DD");
+      }
+    });
     return calendarTemplate(data);
+  },
+  doneRendering: function() {
+    return this.eventsThisMonth.map((function(_this) {
+      return function(obj) {
+        var eventEl;
+        eventEl = _this.element.find("[data-event=" + obj.id + "]");
+        return eventViews.push(new eventView(obj, eventEl));
+      };
+    })(this));
   }
 });
 
@@ -75,7 +127,7 @@ getEvents = function(moment) {
 getEvents(moment());
 
 
-},{"./calendar.hbs":1,"./clndr":3,"ajax-promise":4,"moment":51}],3:[function(require,module,exports){
+},{"./calendar.hbs":1,"./clndr":3,"./modal.hbs":4,"ajax-promise":5,"hbsfy/runtime":51,"moment":52}],3:[function(require,module,exports){
 /*
  *               ~ CLNDR v1.2.10 ~
  * ==============================================
@@ -996,7 +1048,26 @@ module.exports = function($){
   }
 
 };
-},{"moment":51}],4:[function(require,module,exports){
+},{"moment":52}],4:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+    var stack1, helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
+
+  return "<div class=\"modal fade\" id=\"event-modal-"
+    + alias3(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "\">\n    <div class=\"modal-dialog\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title\">"
+    + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "&nbsp;&nbsp;<span class=\"label label-default\">"
+    + alias3((helpers.formatDate || (depth0 && depth0.formatDate) || alias1).call(depth0,(depth0 != null ? depth0.moment : depth0),"MMMM Do YYYY \\at h:mm a",{"name":"formatDate","hash":{},"data":data}))
+    + "</span></h4>\n            </div>\n            <div class=\"modal-body\">\n                "
+    + ((stack1 = ((helper = (helper = helpers.details || (depth0 != null ? depth0.details : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"details","hash":{},"data":data}) : helper))) != null ? stack1 : "")
+    + "\n                <address>"
+    + alias3(((helper = (helper = helpers.location || (depth0 != null ? depth0.location : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"location","hash":{},"data":data}) : helper)))
+    + "</address>\n            </div>\n            <div class=\"modal-footer\">\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n            </div>\n        </div>\n    </div>\n</div>";
+},"useData":true});
+
+},{"hbsfy/runtime":51}],5:[function(require,module,exports){
 var BluebirdPromise = require('bluebird');
 var $ = require('jquery');
 
@@ -1033,7 +1104,7 @@ var AjaxPromise = {
 };
 
 module.exports = AjaxPromise;
-},{"bluebird":7,"jquery":40}],5:[function(require,module,exports){
+},{"bluebird":8,"jquery":41}],6:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1083,7 +1154,7 @@ Promise.prototype.any = function Promise$any() {
 
 };
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (process){
 /**
  * The MIT License (MIT)
@@ -1200,7 +1271,7 @@ Async.prototype._reset = function Async$_reset() {
 module.exports = new Async();
 
 }).call(this,require('_process'))
-},{"./queue.js":29,"./schedule.js":32,"./util.js":39,"_process":41}],7:[function(require,module,exports){
+},{"./queue.js":30,"./schedule.js":33,"./util.js":40,"_process":42}],8:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1228,7 +1299,7 @@ module.exports = new Async();
 "use strict";
 var Promise = require("./promise.js")();
 module.exports = Promise;
-},{"./promise.js":24}],8:[function(require,module,exports){
+},{"./promise.js":25}],9:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1351,7 +1422,7 @@ Promise.prototype.get = function Promise$get(propertyName) {
 };
 };
 
-},{"./util.js":39}],9:[function(require,module,exports){
+},{"./util.js":40}],10:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1431,7 +1502,7 @@ function Promise$fork(didFulfill, didReject, didProgress) {
 };
 };
 
-},{"./async.js":6,"./errors.js":14}],10:[function(require,module,exports){
+},{"./async.js":7,"./errors.js":15}],11:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1677,7 +1748,7 @@ var captureStackTrace = (function stackDetection() {
 return CapturedTrace;
 };
 
-},{"./es5.js":16,"./util.js":39}],11:[function(require,module,exports){
+},{"./es5.js":17,"./util.js":40}],12:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1775,7 +1846,7 @@ CatchFilter.prototype.doFilter = function CatchFilter$_doFilter(e) {
 return CatchFilter;
 };
 
-},{"./errors.js":14,"./es5.js":16,"./util.js":39}],12:[function(require,module,exports){
+},{"./errors.js":15,"./es5.js":17,"./util.js":40}],13:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1857,7 +1928,7 @@ function Promise$thenThrow(reason) {
 };
 };
 
-},{"./util.js":39}],13:[function(require,module,exports){
+},{"./util.js":40}],14:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -1895,7 +1966,7 @@ Promise.each = function Promise$Each(promises, fn) {
 };
 };
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2044,7 +2115,7 @@ module.exports = {
     canAttach: canAttach
 };
 
-},{"./es5.js":16,"./util.js":39}],15:[function(require,module,exports){
+},{"./es5.js":17,"./util.js":40}],16:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2086,7 +2157,7 @@ function apiRejection(msg) {
 return apiRejection;
 };
 
-},{"./errors.js":14}],16:[function(require,module,exports){
+},{"./errors.js":15}],17:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2177,7 +2248,7 @@ if (isES5) {
     };
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2215,7 +2286,7 @@ Promise.filter = function Promise$Filter(promises, fn, options) {
 };
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2339,7 +2410,7 @@ Promise.prototype.tap = function Promise$tap(handler) {
 };
 };
 
-},{"./util.js":39}],19:[function(require,module,exports){
+},{"./util.js":40}],20:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2494,7 +2565,7 @@ Promise.spawn = function Promise$Spawn(generatorFunction) {
 };
 };
 
-},{"./errors.js":14,"./util.js":39}],20:[function(require,module,exports){
+},{"./errors.js":15,"./util.js":40}],21:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2620,7 +2691,7 @@ Promise.join = function Promise$Join() {
 
 };
 
-},{"./util.js":39}],21:[function(require,module,exports){
+},{"./util.js":40}],22:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2773,7 +2844,7 @@ Promise.map = function Promise$Map(promises, fn, options, _filter) {
 
 };
 
-},{"./util.js":39}],22:[function(require,module,exports){
+},{"./util.js":40}],23:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2853,7 +2924,7 @@ Promise.prototype.nodeify = function Promise$nodeify(nodeback, options) {
 };
 };
 
-},{"./async.js":6,"./util.js":39}],23:[function(require,module,exports){
+},{"./async.js":7,"./util.js":40}],24:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -2969,7 +3040,7 @@ function Promise$_progressUnchecked(progressValue) {
 };
 };
 
-},{"./async.js":6,"./errors.js":14,"./util.js":39}],24:[function(require,module,exports){
+},{"./async.js":7,"./errors.js":15,"./util.js":40}],25:[function(require,module,exports){
 (function (process){
 /**
  * The MIT License (MIT)
@@ -4069,7 +4140,7 @@ return Promise;
 };
 
 }).call(this,require('_process'))
-},{"./any.js":5,"./async.js":6,"./call_get.js":8,"./cancel.js":9,"./captured_trace.js":10,"./catch_filter.js":11,"./direct_resolve.js":12,"./each.js":13,"./errors.js":14,"./errors_api_rejection":15,"./filter.js":17,"./finally.js":18,"./generators.js":19,"./join.js":20,"./map.js":21,"./nodeify.js":22,"./progress.js":23,"./promise_array.js":25,"./promise_resolver.js":26,"./promisify.js":27,"./props.js":28,"./race.js":30,"./reduce.js":31,"./settle.js":33,"./some.js":34,"./synchronous_inspection.js":35,"./thenables.js":36,"./timers.js":37,"./using.js":38,"./util.js":39,"_process":41}],25:[function(require,module,exports){
+},{"./any.js":6,"./async.js":7,"./call_get.js":9,"./cancel.js":10,"./captured_trace.js":11,"./catch_filter.js":12,"./direct_resolve.js":13,"./each.js":14,"./errors.js":15,"./errors_api_rejection":16,"./filter.js":18,"./finally.js":19,"./generators.js":20,"./join.js":21,"./map.js":22,"./nodeify.js":23,"./progress.js":24,"./promise_array.js":26,"./promise_resolver.js":27,"./promisify.js":28,"./props.js":29,"./race.js":31,"./reduce.js":32,"./settle.js":34,"./some.js":35,"./synchronous_inspection.js":36,"./thenables.js":37,"./timers.js":38,"./using.js":39,"./util.js":40,"_process":42}],26:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -4275,7 +4346,7 @@ function PromiseArray$getActualLength(len) {
 return PromiseArray;
 };
 
-},{"./errors.js":14,"./util.js":39}],26:[function(require,module,exports){
+},{"./errors.js":15,"./util.js":40}],27:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -4437,7 +4508,7 @@ function PromiseResolver$_setCarriedStackTrace(trace) {
 
 module.exports = PromiseResolver;
 
-},{"./async.js":6,"./errors.js":14,"./es5.js":16,"./util.js":39}],27:[function(require,module,exports){
+},{"./async.js":7,"./errors.js":15,"./es5.js":17,"./util.js":40}],28:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -4767,7 +4838,7 @@ Promise.promisifyAll = function Promise$PromisifyAll(target, options) {
 };
 
 
-},{"./errors":14,"./promise_resolver.js":26,"./util.js":39}],28:[function(require,module,exports){
+},{"./errors":15,"./promise_resolver.js":27,"./util.js":40}],29:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -4879,7 +4950,7 @@ Promise.props = function Promise$Props(promises) {
 };
 };
 
-},{"./errors_api_rejection":15,"./es5.js":16,"./util.js":39}],29:[function(require,module,exports){
+},{"./errors_api_rejection":16,"./es5.js":17,"./util.js":40}],30:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -4998,7 +5069,7 @@ Queue.prototype._resizeTo = function Queue$_resizeTo(capacity) {
 
 module.exports = Queue;
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -5074,7 +5145,7 @@ Promise.prototype.race = function Promise$race() {
 
 };
 
-},{"./errors_api_rejection.js":15,"./util.js":39}],31:[function(require,module,exports){
+},{"./errors_api_rejection.js":16,"./util.js":40}],32:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -5259,7 +5330,7 @@ Promise.reduce = function Promise$Reduce(promises, fn, initialValue, _each) {
 };
 };
 
-},{"./util.js":39}],32:[function(require,module,exports){
+},{"./util.js":40}],33:[function(require,module,exports){
 (function (process){
 /**
  * The MIT License (MIT)
@@ -5326,7 +5397,7 @@ else throw new Error("no async scheduler available");
 module.exports = schedule;
 
 }).call(this,require('_process'))
-},{"_process":41}],33:[function(require,module,exports){
+},{"_process":42}],34:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -5397,7 +5468,7 @@ Promise.prototype.settle = function Promise$settle() {
 };
 };
 
-},{"./util.js":39}],34:[function(require,module,exports){
+},{"./util.js":40}],35:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -5562,7 +5633,7 @@ Promise.prototype.some = function Promise$some(howMany) {
 Promise._SomePromiseArray = SomePromiseArray;
 };
 
-},{"./errors.js":14,"./util.js":39}],35:[function(require,module,exports){
+},{"./errors.js":15,"./util.js":40}],36:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -5642,7 +5713,7 @@ Promise.prototype.isResolved = function Promise$isResolved() {
 Promise.PromiseInspection = PromiseInspection;
 };
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -5779,7 +5850,7 @@ function Promise$_doThenable(x, then, originalPromise) {
 return Promise$_Cast;
 };
 
-},{"./errors.js":14,"./util.js":39}],37:[function(require,module,exports){
+},{"./errors.js":15,"./util.js":40}],38:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -5889,7 +5960,7 @@ Promise.prototype.timeout = function Promise$timeout(ms, message) {
 
 };
 
-},{"./errors.js":14,"./errors_api_rejection":15,"./util.js":39}],38:[function(require,module,exports){
+},{"./errors.js":15,"./errors_api_rejection":16,"./util.js":40}],39:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -6083,7 +6154,7 @@ module.exports = function (Promise, apiRejection, cast) {
 
 };
 
-},{"./errors.js":14,"./util.js":39}],39:[function(require,module,exports){
+},{"./errors.js":15,"./util.js":40}],40:[function(require,module,exports){
 /**
  * The MIT License (MIT)
  * 
@@ -6355,7 +6426,7 @@ var ret = {
 
 module.exports = ret;
 
-},{"./es5.js":16}],40:[function(require,module,exports){
+},{"./es5.js":17}],41:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -15567,7 +15638,7 @@ return jQuery;
 
 }));
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -15659,7 +15730,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -15720,7 +15791,7 @@ inst['default'] = inst;
 
 exports['default'] = inst;
 module.exports = exports['default'];
-},{"./handlebars/base":43,"./handlebars/exception":44,"./handlebars/no-conflict":45,"./handlebars/runtime":46,"./handlebars/safe-string":47,"./handlebars/utils":48}],43:[function(require,module,exports){
+},{"./handlebars/base":44,"./handlebars/exception":45,"./handlebars/no-conflict":46,"./handlebars/runtime":47,"./handlebars/safe-string":48,"./handlebars/utils":49}],44:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -15994,7 +16065,7 @@ function createFrame(object) {
 }
 
 /* [args, ]options */
-},{"./exception":44,"./utils":48}],44:[function(require,module,exports){
+},{"./exception":45,"./utils":49}],45:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16033,7 +16104,7 @@ Exception.prototype = new Error();
 
 exports['default'] = Exception;
 module.exports = exports['default'];
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -16054,7 +16125,7 @@ exports['default'] = function (Handlebars) {
 
 module.exports = exports['default'];
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -16287,7 +16358,7 @@ function initData(context, data) {
   }
   return data;
 }
-},{"./base":43,"./exception":44,"./utils":48}],47:[function(require,module,exports){
+},{"./base":44,"./exception":45,"./utils":49}],48:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16302,7 +16373,7 @@ SafeString.prototype.toString = SafeString.prototype.toHTML = function () {
 
 exports['default'] = SafeString;
 module.exports = exports['default'];
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16417,15 +16488,15 @@ function blockParams(params, ids) {
 function appendContextPath(contextPath, id) {
   return (contextPath ? contextPath + '.' : '') + id;
 }
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 // Create a simple path alias to allow browserify to resolve
 // the runtime on a supported path.
 module.exports = require('./dist/cjs/handlebars.runtime')['default'];
 
-},{"./dist/cjs/handlebars.runtime":42}],50:[function(require,module,exports){
+},{"./dist/cjs/handlebars.runtime":43}],51:[function(require,module,exports){
 module.exports = require("handlebars/runtime")["default"];
 
-},{"handlebars/runtime":49}],51:[function(require,module,exports){
+},{"handlebars/runtime":50}],52:[function(require,module,exports){
 //! moment.js
 //! version : 2.10.3
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
