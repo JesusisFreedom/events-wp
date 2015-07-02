@@ -100,10 +100,16 @@ calendarControler = $('#ev-wp-clndr').clndr({
     eventViews = void 0;
     eventViews = [];
     data.eventsThisMonth.map(function(obj) {
-      obj.moment = moment(obj.start_date + " " + obj.time, "YYYY-MM-DD hh:mm");
-      if (!obj.moment.isValid()) {
-        return obj.moment = moment(obj.start_date, "YYYY-MM-DD");
+      return obj.moment = moment(obj.date, "YYYY-MM-DD hh:mm A");
+    });
+    data.eventsThisMonth.sort(function(a, b) {
+      if (a.moment.isBefore(b.moment)) {
+        return -1;
       }
+      if (b.moment.isBefore(a.moment)) {
+        return 1;
+      }
+      return 0;
     });
     return calendarTemplate(data);
   },

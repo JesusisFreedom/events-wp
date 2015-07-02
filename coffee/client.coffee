@@ -40,8 +40,11 @@ calendarControler = $('#ev-wp-clndr')
     eventViews = undefined
     eventViews = []
     data.eventsThisMonth.map (obj) ->
-      obj.moment = moment("#{obj.start_date} #{obj.time}", "YYYY-MM-DD hh:mm")
-      obj.moment = moment(obj.start_date, "YYYY-MM-DD") if not obj.moment.isValid()
+      obj.moment = moment(obj.date, "YYYY-MM-DD hh:mm A")
+    data.eventsThisMonth.sort (a,b) ->
+      return -1 if a.moment.isBefore(b.moment)
+      return 1 if b.moment.isBefore(a.moment)
+      return 0
     calendarTemplate data
   doneRendering: ->
     @eventsThisMonth.map (obj) =>
